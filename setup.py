@@ -20,5 +20,4 @@ setup(name='demo_package',
       author_email='xavier.dupre@gmail.com',
       url='https://github.com/sdpython/demo_package',
       packages=packages,
-      package_dir=package_dir,
-      requires=requirements)
+      package_dir=package_dir)
