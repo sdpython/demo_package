@@ -1,65 +1,21 @@
-version: 2
+version: 2.1
+
+orbs:
+  python: circleci/python@0.2.1
+
 jobs:
-  build:
-    docker:
-      - image: circleci/python:3.8.5
-    
-    working_directory: ~/repo
-    
+  build-and-test:
+    executor: python/default
     steps:
       - checkout
-
-      - restore_cache:
-          keys:
-          - v2-dependencies-{{ checksum "requirements.txt" }}
-          - v2-dependencies-
-
+      - python/load-cache
+      - python/install-deps
+      - python/save-cache
       - run:
-          name: install dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -r requirements.txt
-            pip install -r requirements-dev.txt
+          command: ./manage.py test
+          name: Test
 
-      - save_cache:
-          paths:
-            - ./venv
-          key: v2-dependencies-{{ checksum "requirements.txt" }}
-        
-      - run:
-          name: run tests
-          command: |
-            . venv/bin/activate
-            coverage run  --omit=tests/test_*.py -m unittest discover tests
-
-      - run:
-          name: flake8
-          command: |
-            . venv/bin/activate
-            python -m flake8 tests
-            python -m flake8 demo_package
-            python -m flake8 examples
-
-      - run:
-          name: coverage
-          command: |
-            . venv/bin/activate
-            coverage html -d test-reports/coverage.html
-
-      - run:
-          name: wheel
-          command: |
-            . venv/bin/activate
-            python setup.py bdist_wheel
-            cp dist/*.whl test-reports
-
-      - run:
-          name: documentation
-          command: |
-            . venv/bin/activate
-            sphinx-build -M html doc test-reports
-
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
+workflows:
+  main:
+    jobs:
+      - build-and-test
